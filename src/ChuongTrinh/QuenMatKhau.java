@@ -1,6 +1,14 @@
 package ChuongTrinh;
 
 import java.awt.Color;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
@@ -15,48 +23,144 @@ import javax.swing.JOptionPane;
  */
 public class QuenMatKhau extends javax.swing.JFrame {
 
-    /**
-     * Creates new form QuenMatKhau
-     */
-    public QuenMatKhau() {
+    Connection ketNoi;
+    ArrayList<NguoiDung> listND = new ArrayList<NguoiDung>();
+    String username;
+    String pass, chucvu;
+    NguoiDung nd;
+
+    public QuenMatKhau() throws SQLException {
         initComponents();
+        loadDuLieuNguoiDung();
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
-    public void check() {
+    public void ketNoiCSDL() throws SQLException {
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            String url = "jdbc:sqlserver://localhost;databaseName=QuanLyQuanCaPhe";
+            String user = "sa";
+            String pass = "123";
+            ketNoi = DriverManager.getConnection(url, user, pass);
+
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi kết nối CSDL");
+        }
+
+    }
+
+    public void loadDuLieuNguoiDung() throws SQLException {
+        ketNoiCSDL();
+        String sql = "select * from NguoiDung";
+        PreparedStatement cauLenh = ketNoi.prepareStatement(sql);
+        ResultSet ketQua = cauLenh.executeQuery();
+        while (ketQua.next()) {
+            username = ketQua.getString(1);
+            pass = ketQua.getString(2);
+            chucvu = ketQua.getString(3);
+            nd = new NguoiDung(username, pass, chucvu);
+            listND.add(nd);
+
+        }
+
+    }
+    int dem = 0;
+
+    public void checkUserNamePassWord() {
+
+        for (int i = 0; i < listND.size(); i++) {
+            username = listND.get(i).username;
+            pass = listND.get(i).password;
+            if (username.equals(txtUsername.getText())) {
+                lblCheckUsername.setText("");
+                dem = 0;
+                break;
+            }
+            if (!username.equals(txtUsername.getText())) {
+                dem++;
+            }
+
+        }
+
+//        if (dem > 0) {
+//            lblCheckUsername.setForeground(new Color(255, 255, 135));
+//            lblCheckUsername.setText("Username không tồn tại");
+//            return;
+//        }
+    }
+
+    public void doiMatKhau() throws SQLException {
+
+        ketNoiCSDL();
+        String sql = "update NguoiDung set Password = ? where Username = ?";
+        PreparedStatement cauLenh = ketNoi.prepareStatement(sql);
+        cauLenh.setString(1, pswNewPass.getText());
+        cauLenh.setString(2, txtUsername.getText());
+        cauLenh.executeUpdate();
+
+    }
+
+    public boolean check() throws SQLException {
+        int loi = 0;
+        checkUserNamePassWord();
         if (txtUsername.getText().equals("Username") || txtUsername.getText().isEmpty()) {
-            lblCheckUsername.setForeground(Color.yellow);
-            lblCheckUsername.setText("Vui lòng nhập username!");
+            lblCheckUsername.setForeground(new Color(84, 255, 118));
+            lblCheckUsername.setText("Bạn chưa nhập username!");
+            loi++;
         } else {
             lblCheckUsername.setText("");
         }
 
         if (pswNewPass.getText().equals("00000000") || pswNewPass.getText().isEmpty()) {
-            lblCheckNewPass.setForeground(Color.yellow);
-            lblCheckNewPass.setText("Vui lòng nhập new password!");
+            lblCheckNewPass.setForeground(new Color(84, 255, 118));
+            lblCheckNewPass.setText("Bạn chưa nhập new password!");
+            loi++;
         } else if (pswNewPass.getText().length() < 3) {
-            lblCheckNewPass.setForeground(Color.yellow);
+            lblCheckNewPass.setForeground(new Color(84, 255, 118));
             lblCheckNewPass.setText("Password phải có ít nhất trên 3 ký tự!");
         } else {
             lblCheckNewPass.setText("");
         }
         if (pswComfirmPass.getText().equals("00000000") || pswComfirmPass.getText().isEmpty()) {
-            lblCheckComfirmPass.setForeground(Color.yellow);
-            lblCheckComfirmPass.setText("Vui lòng nhập lại new password!");
+            lblCheckComfirmPass.setForeground(new Color(84, 255, 118));
+            lblCheckComfirmPass.setText("Bạn chưa nhập lại new password!");
+            loi++;
         } else if (pswComfirmPass.getText().length() < 3) {
-            lblCheckComfirmPass.setForeground(Color.yellow);
+            lblCheckComfirmPass.setForeground(new Color(84, 255, 118));
             lblCheckComfirmPass.setText("Password phải có ít nhất trên 3 ký tự!");
+            loi++;
         } else if (!pswComfirmPass.getText().equals(pswNewPass.getText())) {
-            lblCheckComfirmPass.setForeground(Color.yellow);
+            lblCheckComfirmPass.setForeground(new Color(84, 255, 118));
             lblCheckComfirmPass.setText("<html>Mật khẩu không trùng khớp ! Vui lòng nhập lại<br> mật khẩu !</html>");
-        } else if (pswComfirmPass.getText().equals(pswNewPass.getText()) && !txtUsername.getText().isEmpty() && !txtUsername.getText().equals("Username")) {
-            JOptionPane.showMessageDialog(rootPane, "Đổi mật khẩu thành công");
-            new DangNhap().setVisible(true);
-            this.dispose();
+            loi++;
         } else {
             lblCheckComfirmPass.setText("");
         }
+        if (loi > 0) {
+            return false;
+        }
+        if (dem > 0) {
+            lblCheckUsername.setForeground(new Color(84, 255, 118));
+            lblCheckUsername.setText("Username không tồn tại");
+            return false;
+        } else {
+            lblCheckUsername.setText("");
+        }
+        if (pswComfirmPass.getText().equals(pswNewPass.getText())) {
+            int chon = JOptionPane.showConfirmDialog(rootPane, "Bạn chắc chắn muốn đổi mật khẩu", "Thông báo", JOptionPane.YES_NO_OPTION);
+            if (chon == JOptionPane.YES_OPTION) {
+                doiMatKhau();
+                JOptionPane.showMessageDialog(rootPane, "Đổi mật khẩu thành công");
+                new DangNhap().setVisible(true);
+                this.dispose();
+            } else {
+                JOptionPane.showMessageDialog(rootPane, "Mật khẩu chưa thay đổi");
+            }
 
+        }
+
+        return true;
     }
 
     /**
@@ -86,6 +190,7 @@ public class QuenMatKhau extends javax.swing.JFrame {
         lblBackGround = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setUndecorated(true);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         lblCheckUsername.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
@@ -131,6 +236,7 @@ public class QuenMatKhau extends javax.swing.JFrame {
         btnCancel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         btnCancel.setForeground(new java.awt.Color(255, 255, 255));
         btnCancel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/icons8_cancel_32px.png"))); // NOI18N
+        btnCancel.setText("Cancel");
         btnCancel.setMaximumSize(new java.awt.Dimension(69, 31));
         btnCancel.setMinimumSize(new java.awt.Dimension(69, 31));
         btnCancel.setPreferredSize(new java.awt.Dimension(69, 31));
@@ -254,7 +360,13 @@ public class QuenMatKhau extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnDoiMatKhauActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDoiMatKhauActionPerformed
-        check();
+        try {
+            if (check()) {
+
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Lỗi load csdl");
+        }
     }//GEN-LAST:event_btnDoiMatKhauActionPerformed
 
     private void lblHienNewPassMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblHienNewPassMouseClicked
@@ -386,7 +498,11 @@ public class QuenMatKhau extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new QuenMatKhau().setVisible(true);
+                try {
+                    new QuenMatKhau().setVisible(true);
+                } catch (SQLException ex) {
+                    Logger.getLogger(QuenMatKhau.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }

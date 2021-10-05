@@ -6,6 +6,14 @@ package ChuongTrinh;
  * and open the template in the editor.
  */
 import java.awt.Color;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
@@ -15,36 +23,108 @@ import javax.swing.JOptionPane;
  */
 public class DangNhap extends javax.swing.JFrame {
 
-    /**
-     * Creates new form QLQCP_DangNhap
-     */
+    Connection ketNoi;
+    ArrayList<NguoiDung> listND = new ArrayList<NguoiDung>();
+    String username;
+    String pass;
+    String chucvu;
+    static String Username, ChucVu;
+    NguoiDung nd;
+
     public DangNhap() {
         initComponents();
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
-    public void checkBoTrong() {
-        String chuoi = "";
+    public void ketNoiCSDL() throws SQLException {
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            String url = "jdbc:sqlserver://localhost;databaseName=QuanLyQuanCaPhe";
+            String user = "sa";
+            String pass = "123";
+            ketNoi = DriverManager.getConnection(url, user, pass);
+
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi kết nối CSDL");
+        }
+
+    }
+
+    public void loadDuLieuNguoiDung() throws SQLException {
+        ketNoiCSDL();
+        String sql = "select * from NguoiDung";
+        PreparedStatement cauLenh = ketNoi.prepareStatement(sql);
+        ResultSet ketQua = cauLenh.executeQuery();
+        while (ketQua.next()) {
+            username = ketQua.getString(1);
+            pass = ketQua.getString(2);
+            chucvu = ketQua.getString(3);
+            nd = new NguoiDung(username, pass, chucvu);
+            listND.add(nd);
+
+        }
+
+    }
+
+    public void checkUserNamePassWord() {
+        int dem = 0;
+        for (int i = 0; i < listND.size(); i++) {
+            username = listND.get(i).username;
+            pass = listND.get(i).password;
+            if (txtUsername.getText().trim().equals(username) && pswPassword.getText().equals(pass)) {
+
+                new LoadingForm().setVisible(true);
+                this.dispose();
+            } else if (username.equals(txtUsername.getText()) && !pass.equals(pswPassword.getText())) {
+                lblCheckUsername.setText("");
+                lblCheckPassWord.setForeground(new Color(255, 255, 135));
+                lblCheckPassWord.setText("Mật khẩu sai");
+                dem = 0;
+                break;
+            }
+            if (!username.equals(txtUsername.getText())) {
+                dem++;
+            }
+
+        }
+        if (dem > 0) {
+            lblCheckUsername.setForeground(new Color(255, 255, 135));
+            lblCheckUsername.setText("Username không tồn tại");
+        }
+    }
+
+    public boolean checkBoTrong() {
+        int loi = 0;
         if (txtUsername.getText().equals("Username") || txtUsername.getText().isEmpty()) {
             lblCheckUsername.setForeground(new Color(255, 255, 135));
             lblCheckUsername.setText("Vui lòng nhập username");
-            chuoi += "Vui lòng nhập username\n";
+            loi++;
         } else {
             lblCheckUsername.setText("");
         }
 
         if (pswPassword.getText().equals("Password") || pswPassword.getText().isEmpty()) {
             lblCheckPassWord.setForeground(new Color(255, 255, 135));
-            lblCheckPassWord.setText("Vui lòng nhập password");
-            chuoi += "Vui lòng nhập password";
+            lblCheckPassWord.setText("Bạn chưa nhập password");
+            loi++;
         } else {
             lblCheckPassWord.setText("");
         }
-        if (txtUsername.getText().equals("admin") && pswPassword.getText().equals("123")) {
-           chuoi += "Đăng nhập thành công!";
-           new MenuChucNang().setVisible(true);
-           this.dispose();
+        if (loi > 0) {
+            return false;
         }
-        JOptionPane.showMessageDialog(rootPane,chuoi);
+        return true;
+
+    }
+
+    public void phanQuyen() {
+        for (int i = 0; i < listND.size(); i++) {
+
+            if (txtUsername.getText().equals(listND.get(i).username)) {
+                ChucVu = listND.get(i).chucVu;
+            }
+        }
     }
 
     /**
@@ -71,7 +151,6 @@ public class DangNhap extends javax.swing.JFrame {
         lblQuenMatKhau = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         lblExit = new javax.swing.JLabel();
-        lblNen2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
@@ -94,7 +173,7 @@ public class DangNhap extends javax.swing.JFrame {
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 460));
 
-        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel3.setBackground(new java.awt.Color(38, 97, 215));
         jPanel3.setPreferredSize(new java.awt.Dimension(450, 500));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -183,7 +262,7 @@ public class DangNhap extends javax.swing.JFrame {
                 lblQuenMatKhauMouseExited(evt);
             }
         });
-        jPanel3.add(lblQuenMatKhau, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 330, -1, -1));
+        jPanel3.add(lblQuenMatKhau, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 310, -1, -1));
 
         jLabel2.setFont(new java.awt.Font("Myriad Pro", 1, 48)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
@@ -210,11 +289,6 @@ public class DangNhap extends javax.swing.JFrame {
             }
         });
         jPanel3.add(lblExit, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 0, 50, 40));
-
-        lblNen2.setBackground(new java.awt.Color(38, 97, 215));
-        lblNen2.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
-        lblNen2.setOpaque(true);
-        jPanel3.add(lblNen2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 450, 460));
 
         getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 0, 450, 460));
 
@@ -281,7 +355,18 @@ public class DangNhap extends javax.swing.JFrame {
     }//GEN-LAST:event_lblHienMatKhauMouseClicked
 
     private void lblLoginMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblLoginMouseClicked
-        checkBoTrong();
+        try {
+            if (checkBoTrong()) {
+
+                loadDuLieuNguoiDung();
+                checkUserNamePassWord();
+                Username = txtUsername.getText().trim();
+                phanQuyen();
+
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Lỗi load cơ sở dữ liệu");
+        }
     }//GEN-LAST:event_lblLoginMouseClicked
 
     private void lblLoginMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblLoginMouseMoved
@@ -308,7 +393,11 @@ public class DangNhap extends javax.swing.JFrame {
     }//GEN-LAST:event_pswPasswordFocusGained
 
     private void lblQuenMatKhauMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblQuenMatKhauMouseClicked
-        new QuenMatKhau().setVisible(true);
+        try {
+            new QuenMatKhau().setVisible(true);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Lỗi!!");
+        }
         this.dispose();
     }//GEN-LAST:event_lblQuenMatKhauMouseClicked
 
@@ -361,7 +450,6 @@ public class DangNhap extends javax.swing.JFrame {
     private javax.swing.JLabel lblHienMatKhau;
     private javax.swing.JLabel lblLogin;
     private javax.swing.JLabel lblNen;
-    private javax.swing.JLabel lblNen2;
     private javax.swing.JLabel lblPass;
     private javax.swing.JLabel lblQuenMatKhau;
     private javax.swing.JLabel lblUserName;

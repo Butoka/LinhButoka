@@ -3,8 +3,14 @@ package ChuongTrinh;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+import javax.swing.plaf.basic.BasicProgressBarUI;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -17,16 +23,16 @@ import javax.swing.UIManager;
  */
 public class LoadingForm extends javax.swing.JFrame {
 
-    /**
-     * Creates new form LoadingForm
-     */
+
     public LoadingForm() {
         initComponents();
-//        loading();
+        loading();
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        prgTienTrinh.setUI(new BasicProgressBarUI());
     }
     Timer time;
     int count = 0;
+  
     public void loading() {
         LoadingForm ld = this;
         time = new Timer(50, new ActionListener() {
@@ -37,10 +43,14 @@ public class LoadingForm extends javax.swing.JFrame {
                 prgTienTrinh.setValue(giaTriHienTai);
                 lblTienTrinh.setText(String.valueOf(giaTriHienTai) + "%");
                 if (giaTriHienTai == 100) {
-                    time.stop();
-                    new DangNhap().setVisible(true);
-                    ld.dispose();
-//                    JOptionPane.showMessageDialog(rootPane, "Đã tải thành công!!!");
+                    try {
+                        time.stop();
+                        new MenuChucNang().setVisible(true);
+                        ld.dispose();
+                        JOptionPane.showMessageDialog(rootPane, "Đăng nhập thành công!!!");
+                    } catch (SQLException ex) {
+                        Logger.getLogger(LoadingForm.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
 
@@ -57,68 +67,52 @@ public class LoadingForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        btnStart = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        lblLogo = new javax.swing.JLabel();
         lblTienTrinh = new javax.swing.JLabel();
+        lblLogo = new javax.swing.JLabel();
         prgTienTrinh = new javax.swing.JProgressBar();
         jLabel1 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Loading form");
+        setUndecorated(true);
         setResizable(false);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        btnStart.setBackground(new java.awt.Color(0, 0, 255));
-        btnStart.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        btnStart.setForeground(new java.awt.Color(255, 255, 255));
-        btnStart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/icons8_play_32px_3.png"))); // NOI18N
-        btnStart.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        btnStart.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStartActionPerformed(evt);
-            }
-        });
-        getContentPane().add(btnStart, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 340, 130, 40));
-
-        jLabel3.setFont(new java.awt.Font("Arial", 1, 36)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel3.setText("Coffee Management");
-        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 810, -1));
-
-        lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/coffeelogo.png"))); // NOI18N
-        getContentPane().add(lblLogo, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 820, 220));
-
         lblTienTrinh.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblTienTrinh.setForeground(new java.awt.Color(255, 255, 255));
+        lblTienTrinh.setForeground(new java.awt.Color(255, 102, 51));
         lblTienTrinh.setText("0%");
         getContentPane().add(lblTienTrinh, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 380, 70, -1));
 
-        prgTienTrinh.setBackground(new java.awt.Color(0, 0, 255));
-        prgTienTrinh.setForeground(new java.awt.Color(255, 51, 0));
+        lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/logo.PNG"))); // NOI18N
+        getContentPane().add(lblLogo, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 820, 310));
+
+        prgTienTrinh.setBackground(new java.awt.Color(255, 255, 255));
+        prgTienTrinh.setForeground(new java.awt.Color(255, 153, 51));
+        prgTienTrinh.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         prgTienTrinh.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         prgTienTrinh.setFocusTraversalPolicyProvider(true);
         getContentPane().add(prgTienTrinh, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 410, 820, -1));
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("Loading....");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 380, -1, -1));
+        jLabel1.setForeground(new java.awt.Color(255, 102, 0));
+        jLabel1.setText("Loading");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 380, 90, -1));
 
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/loading.gif"))); // NOI18N
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 340, 140, 70));
+
+        jLabel2.setBackground(new java.awt.Color(255, 255, 255));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/coffeeBackground.png"))); // NOI18N
+        jLabel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 153, 0), 2));
+        jLabel2.setOpaque(true);
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 820, 430));
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
-        loading();
-    }//GEN-LAST:event_btnStartActionPerformed
 
     /**
      * @param args the command line arguments
@@ -156,7 +150,6 @@ public class LoadingForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnStart;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
